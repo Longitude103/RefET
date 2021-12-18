@@ -1,6 +1,11 @@
 package RefET
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"math"
+	"time"
+)
 
 func MakeFloat(c interface{}) (float64, error) {
 	var value float64
@@ -71,4 +76,45 @@ func WattToMJ(watt interface{}) (float64, error) {
 
 	value = value * 0.0864
 	return value, nil
+}
+
+func MphToMS(mph interface{}) (float64, error) {
+	value, err := MakeFloat(mph)
+	if err != nil {
+		return 0.0, err
+	}
+
+	value = value * 0.44704
+	return value, nil
+}
+
+func FeetToMeters(ft interface{}) (float64, error) {
+	value, err := MakeFloat(ft)
+	if err != nil {
+		return 0.0, err
+	}
+
+	value = value * 0.3048
+	return value, nil
+}
+
+func DegreesToRad(deg interface{}) (float64, error) {
+	value, err := MakeFloat(deg)
+	if err != nil {
+		return 0.0, err
+	}
+
+	value = value * (math.Pi / 180.0)
+	return value, nil
+}
+
+func DateToDOY(date interface{}) (int, error) {
+	d := fmt.Sprint(date)
+
+	t, err := time.Parse("01-02-2006", d)
+	if err != nil {
+		return 0, err
+	}
+
+	return t.YearDay(), nil
 }

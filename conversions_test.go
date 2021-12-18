@@ -84,3 +84,57 @@ func Test_WattToMJ(t *testing.T) {
 		t.Errorf("want %f, got %f", want, got)
 	}
 }
+
+func Test_MphToMS(t *testing.T) {
+	const tolerance = 0.0001
+
+	want := 13.4112
+	got, err := RefET.MphToMS(30)
+	if err != nil {
+		t.Fatalf("Received an error during conversion: %s", err)
+	}
+
+	if math.Abs(want-got) > tolerance {
+		t.Errorf("want %f, got %f", want, got)
+	}
+}
+
+func Test_FeetToMeters(t *testing.T) {
+	const tolerance = 0.0001
+
+	want := 3.048
+	got, err := RefET.FeetToMeters(10)
+	if err != nil {
+		t.Fatalf("Received an error during conversion: %s", err)
+	}
+
+	if math.Abs(want-got) > tolerance {
+		t.Errorf("want %f, got %f", want, got)
+	}
+}
+
+func Test_DegreesToRad(t *testing.T) {
+	const tolerance = 0.0001
+
+	want := 0.7025
+	got, err := RefET.DegreesToRad(40.25506)
+	if err != nil {
+		t.Fatalf("Received an error during conversion: %s", err)
+	}
+
+	if math.Abs(want-got) > tolerance {
+		t.Errorf("want %f, got %f", want, got)
+	}
+}
+
+func Test_DateToDOY(t *testing.T) {
+	want := 2
+	got, err := RefET.DateToDOY("01-02-2021")
+	if err != nil {
+		t.Fatalf("Received an error during conversion: %s", err)
+	}
+
+	if want != got {
+		t.Errorf("want %d, got %d", want, got)
+	}
+}

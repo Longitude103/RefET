@@ -10,7 +10,7 @@ import (
 func Test_RefET(t *testing.T) {
 	t.Parallel()
 	want := 0.0
-	got := RefET.RefET(RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 40, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, 5, 5, 5)
+	got, _ := RefET.RefET(RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 40, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"})
 
 	if want != got {
 		t.Errorf("want %f, got %f", want, got)
