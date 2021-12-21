@@ -1,87 +1,99 @@
-package RefET_test
+package RefET
 
 import (
 	"math"
 	"testing"
-
-	"github.com/Longitude103/RefET"
 )
 
+type dailyWeather struct {
+	tmax float64
+	tmin float64
+	ea   float64
+	rs   float64
+	ws   float64
+	date string
+}
+
+type stationData struct {
+	wz  float64
+	z   float64
+	lat float64
+}
+
+func Test_calculateRefET(t *testing.T) {
+	const etTolerance = 0.025
+
+	// daily weather data from Appendix C Table C-3
+	jul1 := dailyWeather{32.4, 10.9, 1.27, 22.4, 1.94, "07-01-2000"}
+	jul2 := dailyWeather{33.6, 12.2, 1.19, 26.8, 2.14, "07-02-2000"}
+	jul3 := dailyWeather{32.6, 14.8, 1.40, 23.3, 2.06, "07-03-2000"}
+	jul4 := dailyWeather{33.8, 11.8, 1.18, 29.0, 1.97, "07-04-2000"}
+	jul5 := dailyWeather{32.7, 15.9, 1.59, 27.9, 2.98, "07-05-2000"}
+	dailyData := []dailyWeather{jul1, jul2, jul3, jul4, jul5}
+
+	greeley := stationData{wz: 3.0, z: 1462.4, lat: 40.41}
+
+	wantShort := []float64{5.71, 6.71, 5.98, 6.86, 7.03}
+	wantTall := []float64{7.34, 8.68, 7.65, 8.73, 9.07}
+
+	for i, d := range dailyData {
+		doy, _ := DateToDOY(d.date)
+		lat, _ := DegreesToRad(greeley.lat)
+
+		etShort, etTall := calculateRefET(d.tmax, d.tmin, d.ea, d.rs, d.ws, greeley.wz, greeley.z, lat, doy)
+
+		if math.Abs(wantShort[i]-etShort) > etTolerance {
+			t.Errorf("want %f, got %f", wantShort[i], etShort)
+		}
+
+		if math.Abs(wantTall[i]-etTall) > etTolerance {
+			t.Errorf("want %f, got %f", wantTall[i], etTall)
+		}
+	}
+}
+
+type dailyClimate struct {
+	Tmax Input
+	Tmin Input
+	Ea   EaInput
+	Rs   Input
+	Ws   Input
+	Date Input
+}
+
+type stationDt struct {
+	wz  Input
+	z   Input
+	lat Input
+}
+
 func Test_RefET(t *testing.T) {
-	t.Parallel()
-	want := 0.0
-	got, _ := RefET.RefET(RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 40, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"}, RefET.Input{Value: 5, Units: "F"})
+	const etTolerance = 0.025
+	greeley := stationDt{wz: Input{3.0, "m"}, z: Input{1462.4, "m"}, lat: Input{40.41, "degrees"}}
 
-	if want != got {
-		t.Errorf("want %f, got %f", want, got)
-	}
+	jul1 := dailyClimate{Tmax: Input{32.4, "C"}, Tmin: Input{10.9, "C"}, Ea: EaInput{Input: Input{1.27, "KPA"}, Method: 1}, Rs: Input{22.4, "MJ m-2 d-1"}, Ws: Input{1.94, "m s-1"}, Date: Input{"07-01-2000", "date"}}
+	jul2 := dailyClimate{Tmax: Input{33.6, "C"}, Tmin: Input{12.2, "C"}, Ea: EaInput{Input: Input{1.19, "KPA"}, Method: 1}, Rs: Input{26.8, "MJ m-2 d-1"}, Ws: Input{2.14, "m s-1"}, Date: Input{"07-02-2000", "Date"}}
+	jul3 := dailyClimate{Tmax: Input{32.6, "C"}, Tmin: Input{14.8, "C"}, Ea: EaInput{Input: Input{1.40, "KPA"}, Method: 1}, Rs: Input{23.3, "MJ m-2 d-1"}, Ws: Input{2.06, "m s-1"}, Date: Input{"07-03-2000", "date"}}
+	jul4 := dailyClimate{Tmax: Input{33.8, "C"}, Tmin: Input{11.8, "C"}, Ea: EaInput{Input: Input{1.18, "KPA"}, Method: 1}, Rs: Input{29.0, "MJ m-2 d-1"}, Ws: Input{1.97, "m s-1"}, Date: Input{"07-04-2000", "date"}}
+	jul5 := dailyClimate{Tmax: Input{32.7, "C"}, Tmin: Input{15.9, "C"}, Ea: EaInput{Input: Input{1.59, "KPA"}, Method: 1}, Rs: Input{27.9, "MJ m-2 d-1"}, Ws: Input{2.98, "m s-1"}, Date: Input{"07-05-2000", "date"}}
+	dailyData := []dailyClimate{jul1, jul2, jul3, jul4, jul5}
 
-}
+	wantShort := []float64{5.71, 6.71, 5.98, 6.86, 7.03}
+	wantTall := []float64{7.34, 8.68, 7.65, 8.73, 9.07}
 
-func Test_ConvertTemp(t *testing.T) {
-	const tolerance = .00001
-
-	i := RefET.Input{Value: 0, Units: "C"}
-	i2 := RefET.Input{Value: 32, Units: "F"}
-	i3 := RefET.Input{Value: 100, Units: "F"}
-	testGots := []RefET.Input{i, i2, i3}
-
-	want := []float64{0.0, 0.0, 37.77778}
-
-	for j := 0; j < len(testGots); j++ {
-		got, err := testGots[j].ConvertTemp()
+	for i, d := range dailyData {
+		etShort, etTall, err := RefET(d.Tmin, d.Tmax, d.Ea, d.Rs, d.Ws, greeley.wz, greeley.z, greeley.lat, d.Date)
 		if err != nil {
-			t.Fatal("Error in getting conversions for temp values")
+			t.Fatalf("Error in conversion or RefET Method: %s", err)
 		}
 
-		if math.Abs(want[j]-got) > tolerance {
-			t.Errorf("want %f, got %f", want[j], got)
-		}
-	}
-}
-
-func Test_ConvertEA(t *testing.T) {
-	const tolerance = 0.0001
-
-	i := RefET.Input{Value: 1200, Units: "PA"}
-	i2 := RefET.Input{Value: 1.2, Units: "KPA"}
-	i3 := RefET.Input{Value: 3.2, Units: "kpa"}
-	i4 := RefET.Input{Value: 2853, Units: "pa"}
-	testGots := []RefET.Input{i, i2, i3, i4}
-
-	want := []float64{1.2, 1.2, 3.2, 2.853}
-
-	for j := 0; j < len(testGots); j++ {
-		got, err := testGots[j].ConvertEA()
-		if err != nil {
-			t.Fatal("Error in getting conversions for ea values")
+		if math.Abs(wantShort[i]-etShort) > etTolerance {
+			t.Errorf("want %f, got %f", wantShort[i], etShort)
 		}
 
-		if math.Abs(want[j]-got) > tolerance {
-			t.Errorf("want %f, got %f", want[j], got)
+		if math.Abs(wantTall[i]-etTall) > etTolerance {
+			t.Errorf("want %f, got %f", wantTall[i], etTall)
 		}
 	}
-}
 
-func Test_CovertRA(t *testing.T) {
-	const tolerance = 0.0001
-
-	i := RefET.Input{Value: 1, Units: "Langley"}
-	i2 := RefET.Input{Value: 1, Units: "w / m-2"}
-	i3 := RefET.Input{Value: 1.0, Units: "w/m2"}
-	i4 := RefET.Input{Value: 1.0, Units: "MJ/m2/d"}
-	testGots := []RefET.Input{i, i2, i3, i4}
-
-	want := []float64{0.04184, 0.0864, 0.0864, 1.0}
-
-	for j := 0; j < len(testGots); j++ {
-		got, err := testGots[j].ConvertRS()
-		if err != nil {
-			t.Fatal("Error in getting conversions for ea values")
-		}
-
-		if math.Abs(want[j]-got) > tolerance {
-			t.Errorf("want %f, got %f", want[j], got)
-		}
-	}
 }
