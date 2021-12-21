@@ -1,7 +1,7 @@
 package RefET
 
 // This is the entry function that returns the daily Short and Tall RefET for the day using ASCE method and data provided.
-// Input units can very for each itme and will be converted if required. Use the Exposed "Input" struct to put the data into the function.
+// Input units can very for each item and will be converted if required. Use the Exposed "Input" struct to put the data into the function.
 // These are the required data and the associated units that can be used, ea has it's own "EaInput" struct to use since there are a variety
 // of methods and combinations that can be used to calculate it.  Please see the many tests for example usage.
 // tmin: float or int
@@ -23,7 +23,9 @@ package RefET
 // 	Latitude [degrees].
 // date : date
 // 	date of calculation in the form of mm-dd-year. and month 1 must be 01 and day must be 02
-func RefET(tmin Input, tmax Input, ea EaInput, rs Input, ws Input, zw Input, z Input, lat Input, date Input) (etShort float64, etTall float64, err error) {
+// OutUnits:
+// two choices are "mm" (default) or "in" for the standard millimeters or a conversion to inches
+func RefET(tmin Input, tmax Input, ea EaInput, rs Input, ws Input, zw Input, z Input, lat Input, date Input, outUnits interface{}) (etShort float64, etTall float64, err error) {
 
 	tm, err := tmin.convertTemp()
 	if err != nil {
@@ -71,6 +73,11 @@ func RefET(tmin Input, tmax Input, ea EaInput, rs Input, ws Input, zw Input, z I
 	}
 
 	etShort, etTall = calculateRefET(tma, tm, e, r, w, wz, ele, l, d)
+
+	if outUnits == "in" {
+		etShort *= 0.03937
+		etTall *= 0.03937
+	}
 
 	return etShort, etTall, nil
 }

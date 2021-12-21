@@ -82,7 +82,7 @@ func Test_RefET(t *testing.T) {
 	wantTall := []float64{7.34, 8.68, 7.65, 8.73, 9.07}
 
 	for i, d := range dailyData {
-		etShort, etTall, err := RefET(d.Tmin, d.Tmax, d.Ea, d.Rs, d.Ws, greeley.wz, greeley.z, greeley.lat, d.Date)
+		etShort, etTall, err := RefET(d.Tmin, d.Tmax, d.Ea, d.Rs, d.Ws, greeley.wz, greeley.z, greeley.lat, d.Date, "mm")
 		if err != nil {
 			t.Fatalf("Error in conversion or RefET Method: %s", err)
 		}
